@@ -1,20 +1,41 @@
-const {UserInputError} = require('apollo-server');
+const {UserInputError, AuthenticationError} = require('apollo-server');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const {Op} = require('sequelize');
 
 const {User} = require('../models');
+const {JWT_SECRET} = require('../config/env.json');
 
 module .exports = {
     Query: {
-        getUsers: async () => {
+        getUsers: async (_, __, context) => {
             try {
-                return await User.findAll();
+                let user = {};
+                if (context.req && context.req.headers.authorization) {
+                    const token = context.req.headers.authorization.split('Bearer ')[1];
+                    jwt.verify(token, JWT_SECRET, {},(err, decoded) => {
+                        if (err) {
+                            throw new AuthenticationError('UNAUTHENTICATED');
+                        }
+                        user = decoded;
+                    });
+                }
+
+                return await User.findAll({
+                    where: {
+                        username: {
+                            [Op.ne]: user.username
+                        }
+                    }
+                });
             } catch (err) {
                 console.log(err);
+                throw err;
             }
         },
     },
     Mutation: {
-        register: async (_, args, context, info) => {
+        register: async (_, args) => {
             let {username, email, password, confirmPassword} = args;
             let errors = {};
 
@@ -49,6 +70,51 @@ module .exports = {
                     err.errors.forEach(e => (errors[e.path] = `${e.path} ${e.message}`));
                 }
                 throw new UserInputError('Bad input', {errors: err});
+            }
+        },
+        login: async (_, args) => {
+            const {username, password} = args;
+            const errors = {};
+
+            try {
+                if (username.trim() === '') errors.username = 'Username must not be empty';
+                if (password === '') errors.password = 'Password must not be empty';
+
+                if (Object.keys(errors).length > 0) {
+                    throw new UserInputError('Bad input', {errors});
+                }
+
+                const user = await User.findOne({
+                    where: {
+                        username
+                    }
+                });
+
+                if (!user) {
+                    errors.username = 'User not found';
+                    throw new UserInputError('User not found', {errors});
+                }
+
+                const correctPassword = await bcrypt.compare(password, user.password);
+
+                if (!correctPassword) {
+                    throw new AuthenticationError('Incorrect password');
+                }
+
+                const token = jwt.sign({
+                        username
+                    }, JWT_SECRET, {
+                    expiresIn: '6h'
+                });
+
+                return {
+                    ...user.toJSON(),
+                    createdAt: user.createdAt.toISOString(),
+                    token
+                };
+            } catch (err) {
+                console.log(err);
+                throw err;
             }
         }
     }
