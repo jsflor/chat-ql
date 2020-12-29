@@ -4,18 +4,14 @@ import {Button, Col, Form, Row} from "react-bootstrap";
 import {Link} from "react-router-dom";
 
 
-const REGISTER_USER = gql`
-    mutation register(
+const LOGIN_USER = gql`
+    mutation login(
         $username: String!
-        $email: String!
         $password: String!
-        $confirmPassword: String!
     ) {
-        register (
+        login (
             username: $username
-            email: $email
             password: $password
-            confirmPassword: $confirmPassword
         ) {
             username
             email
@@ -25,47 +21,35 @@ const REGISTER_USER = gql`
     }
 `;
 
-const Register = ({history}) => {
+const Login = ({history}) => {
 
     const [values, setValues] = useState({
-        email: '',
         username: '',
         password: '',
-        confirmPassword: '',
     });
     const [errors, setErrors] = useState({});
 
-    const [register, { loading }] = useMutation(REGISTER_USER, {
+    const [login, { loading }] = useMutation(LOGIN_USER, {
         update: (_, res) => {
-            localStorage.setItem('token', res.data?.register?.token)
+            localStorage.setItem('token', res.data?.login?.token)
             history.push('/');
         },
-        onError: (error) =>
-            setErrors(error.graphQLErrors?.[0].extensions?.errors ?? {})
+        onError: (error) => {
+            setErrors(error.graphQLErrors?.[0].extensions?.errors ?? {});
+        }
     });
 
     const onSubmit = (e) => {
         e.preventDefault();
         console.log(values);
-        register({variables: values});
+        login({variables: values});
     };
 
     return (
         <Row className={'bg-white py-5 justify-content-center'}>
             <Col sm={8} md={6} lg={4}>
-                <h1 className={'text-center'}>Register</h1>
+                <h1 className={'text-center'}>Login</h1>
                 <Form onSubmit={onSubmit}>
-                    <Form.Group>
-                        <Form.Label className={errors.email && 'text-danger'}>
-                            {errors.email ?? 'Email address'}
-                        </Form.Label>
-                        <Form.Control
-                            value={values.email}
-                            className={errors.email && 'is-invalid'}
-                            onChange={e => setValues({...values, email: e.target.value})}
-                            type="email"
-                        />
-                    </Form.Group>
                     <Form.Group>
                         <Form.Label className={errors.username && 'text-danger'}>
                             {errors.username ?? 'Username'}
@@ -88,26 +72,15 @@ const Register = ({history}) => {
                             type="password"
                         />
                     </Form.Group>
-                    <Form.Group>
-                        <Form.Label className={errors.confirmPassword && 'text-danger'}>
-                            {errors.confirmPassword ?? 'Confirm password'}
-                        </Form.Label>
-                        <Form.Control
-                            value={values.confirmPassword}
-                            className={errors.confirmPassword && 'is-invalid'}
-                            onChange={e => setValues({...values, confirmPassword: e.target.value})}
-                            type="password"
-                        />
-                    </Form.Group>
                     <Button variant="success" type="submit" disabled={loading}>
-                        {loading ? 'loading...' : 'Register'}
+                        {loading ? 'loading...' : 'Login'}
                     </Button>
                     <br />
-                    <small>Already have an account? <Link to={'/login'}>Login</Link></small>
+                    <small>Don't have an account? <Link to={'/register'}>Register</Link></small>
                 </Form>
             </Col>
         </Row>
     );
 };
 
-export default Register;
+export default Login;

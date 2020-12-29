@@ -6,7 +6,7 @@ const {Op} = require('sequelize');
 const {User} = require('../models');
 const {JWT_SECRET} = require('../config/env.json');
 
-module .exports = {
+module.exports = {
     Query: {
         getUsers: async (_, __, context) => {
             try {
@@ -98,7 +98,8 @@ module .exports = {
                 const correctPassword = await bcrypt.compare(password, user.password);
 
                 if (!correctPassword) {
-                    throw new AuthenticationError('Incorrect password');
+                    errors.password = 'Incorrect password';
+                    throw new UserInputError('Incorrect password', {errors});
                 }
 
                 const token = jwt.sign({
