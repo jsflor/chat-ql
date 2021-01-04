@@ -3,23 +3,14 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const {Op} = require('sequelize');
 
-const {User} = require('../models');
-const {JWT_SECRET} = require('../config/env.json');
+const {User} = require('../../models');
+const {JWT_SECRET} = require('../../config/env.json');
 
 module.exports = {
     Query: {
-        getUsers: async (_, __, context) => {
+        getUsers: async (_, __, {user}) => {
             try {
-                let user = {};
-                if (context.req && context.req.headers.authorization) {
-                    const token = context.req.headers.authorization.split('Bearer ')[1];
-                    jwt.verify(token, JWT_SECRET, {},(err, decoded) => {
-                        if (err) {
-                            throw new AuthenticationError('UNAUTHENTICATED');
-                        }
-                        user = decoded;
-                    });
-                }
+                if (!user) throw new AuthenticationError('UNAUTHENTICATED');
 
                 return await User.findAll({
                     where: {
@@ -103,14 +94,13 @@ module.exports = {
                 }
 
                 const token = jwt.sign({
-                        username
-                    }, JWT_SECRET, {
+                    username
+                }, JWT_SECRET, {
                     expiresIn: '6h'
                 });
 
                 return {
                     ...user.toJSON(),
-                    createdAt: user.createdAt.toISOString(),
                     token
                 };
             } catch (err) {
