@@ -3,6 +3,8 @@ import { gql, useMutation } from '@apollo/client';
 import {Button, Col, Form, Row} from "react-bootstrap";
 import {Link} from "react-router-dom";
 
+import {useAuthDispatch} from "../context/auth";
+
 
 const REGISTER_USER = gql`
     mutation register(
@@ -27,6 +29,8 @@ const REGISTER_USER = gql`
 
 const Register = ({history}) => {
 
+    const dispatch = useAuthDispatch();
+
     const [values, setValues] = useState({
         email: '',
         username: '',
@@ -36,8 +40,8 @@ const Register = ({history}) => {
     const [errors, setErrors] = useState({});
 
     const [register, { loading }] = useMutation(REGISTER_USER, {
-        update: (_, res) => {
-            localStorage.setItem('token', res.data?.register?.token)
+        update: (_, {data}) => {
+            dispatch({type: 'LOGIN', payload: data.login});
             history.push('/');
         },
         onError: (error) =>

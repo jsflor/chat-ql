@@ -3,6 +3,7 @@ import { gql, useMutation } from '@apollo/client';
 import {Button, Col, Form, Row} from "react-bootstrap";
 import {Link} from "react-router-dom";
 
+import {useAuthDispatch} from "../context/auth";
 
 const LOGIN_USER = gql`
     mutation login(
@@ -23,6 +24,8 @@ const LOGIN_USER = gql`
 
 const Login = ({history}) => {
 
+    const dispatch = useAuthDispatch();
+
     const [values, setValues] = useState({
         username: '',
         password: '',
@@ -30,8 +33,8 @@ const Login = ({history}) => {
     const [errors, setErrors] = useState({});
 
     const [login, { loading }] = useMutation(LOGIN_USER, {
-        update: (_, res) => {
-            localStorage.setItem('token', res.data?.login?.token)
+        update: (_, {data}) => {
+            dispatch({type: 'LOGIN', payload: data.login});
             history.push('/');
         },
         onError: (error) => {
