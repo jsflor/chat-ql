@@ -5,8 +5,9 @@ import './App.scss'
 
 import ApolloProvider from "./ApolloProvider";
 import {AuthProvider} from './context/auth';
+import {MessageProvider} from './context/message';
 
-import Home from "./pages/Home";
+import Home from "./pages/home/Home";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 
@@ -16,15 +17,17 @@ const App = () => {
   return (
   <ApolloProvider>
       <AuthProvider>
-          <BrowserRouter>
-              <Container className={'pt-5'}>
-                  <Switch>
-                      <DynamicRoute path={'/'} exact component={Home} authenticated />
-                      <DynamicRoute path={'/register'} exact component={Register} guest />
-                      <DynamicRoute path={'/login'} exact component={Login} guest />
-                  </Switch>
-              </Container>
-          </BrowserRouter>
+          <MessageProvider>
+              <BrowserRouter>
+                  <Container className={'pt-5'}>
+                      <Switch>
+                          <DynamicRoute path={'/'} exact component={Home} authenticated />
+                          <DynamicRoute path={'/register'} exact component={Register} guest />
+                          <DynamicRoute path={'/login'} exact component={Login} guest />
+                      </Switch>
+                  </Container>
+              </BrowserRouter>
+          </MessageProvider>
       </AuthProvider>
   </ApolloProvider>
   );
