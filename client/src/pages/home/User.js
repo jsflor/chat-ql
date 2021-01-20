@@ -24,18 +24,16 @@ const Users = () => {
             <div
                 role={'button'}
                 className={selectedUser?.username === user.username
-                    ? 'user-div d-flex p-3 bg-white'
-                    : 'user-div d-flex p-3'}
+                    ? 'user-div d-flex p-3 justify-content-center justify-content-md-start bg-white'
+                    : 'user-div d-flex p-3 justify-content-center justify-content-md-start'}
                 key={user.username}
                 onClick={() => dispatch({type: 'SET_SELECTED_USER', payload: user.username})}
             >
                 <Image
                     src={user.imageUrl}
-                    roundedCircle
-                    className={'mr-2'}
-                    style={{width: 50, height: 50, objectFit: 'cover'}}
+                    className={'user-image'}
                 />
-                <div>
+                <div className={'d-none d-md-block ml-2'}>
                     <p className={'text-success'}>{user.username}</p>
                     {user.latestMessage
                         ? <p className={'font-weight-light'}>{user.latestMessage.content}</p>
@@ -46,7 +44,7 @@ const Users = () => {
     }
 
     return (
-        <Col className={'p-0 bg-secondary'} xs={4}>
+        <Col className={'p-0 bg-secondary'} xs={2} md={4}>
             {usersMarkup}
         </Col>
     );

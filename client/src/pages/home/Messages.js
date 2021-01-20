@@ -1,7 +1,8 @@
-import {useEffect} from "react";
+import {useEffect, Fragment} from "react";
 import {gql, useLazyQuery} from "@apollo/client";
 import {Col} from "react-bootstrap";
 import {useMessageDispatch, useMessageState} from "../../context/message";
+import Message from "./Message";
 
 const Messages = () => {
 
@@ -40,15 +41,22 @@ const Messages = () => {
     } else if (messagesLoading) {
         selectedChatMarkup = <p>Loading...</p>;
     } else if (messages.length > 0) {
-        selectedChatMarkup = messages.map((m) => (
-            <p key={m.uuid}>{m.content}</p>
+        selectedChatMarkup = messages.map((message, index) => (
+            <Fragment key={message.uuid} >
+                <Message message={message} />
+                {index === messages.length - 1 && (
+                    <div className={'invisible'}>
+                        <hr className={'m-0'} />
+                    </div>
+                )}
+            </Fragment>
         ));
     } else if (messages.length === 0) {
         selectedChatMarkup = <p>You are now connected! send your fist message</p>;
     }
 
     return (
-        <Col xs={8}>
+        <Col xs={10} md={8} className={'messages-box d-flex flex-column-reverse'}>
             {selectedChatMarkup}
         </Col>
     );
