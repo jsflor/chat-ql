@@ -30,7 +30,7 @@ const Users = () => {
                 onClick={() => dispatch({type: 'SET_SELECTED_USER', payload: user.username})}
             >
                 <Image
-                    src={user.imageUrl}
+                    src={user?.imageUrl ?? 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                     className={'user-image'}
                 />
                 <div className={'d-none d-md-block ml-2'}>

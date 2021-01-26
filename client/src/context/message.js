@@ -4,7 +4,8 @@ const MessageStateContext = createContext();
 const MessageDispatchContext = createContext();
 
 const reducer = (state, action) => {
-    let users;
+    let user, users, userIndex;
+    const {username, message, messages} = action.payload
     switch (action.type) {
         case 'SET_USERS': {
             return {...state, users: action.payload};
@@ -17,10 +18,16 @@ const reducer = (state, action) => {
             return {...state, users};
         }
         case 'SET_USER_MESSAGES': {
-            const {username, messages} = action.payload;
             users = [...state.users];
-            const userIndex = users.findIndex((user) => user.username === username);
+            userIndex = users.findIndex((user) => user.username === username);
             users[userIndex] = {...users[userIndex], messages};
+            return {...state, users};
+        }
+        case 'ADD_MESSAGE': {
+            users = [...state.users];
+            userIndex = users.findIndex((user) => user.username === username);
+            user = {...users[userIndex], messages: [message, ...users[userIndex].messages]};
+            users[userIndex] = user;
             return {...state, users};
         }
         default: {
