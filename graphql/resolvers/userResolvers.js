@@ -66,7 +66,18 @@ module.exports = {
                 // HASH PASSWORD
                 password = await bcrypt.hash(password, 6);
                 // CREATE USER & RETURN USER
-                return await User.create({username, email, password});
+                const user = await User.create({username, email, password});
+
+                const token = jwt.sign({
+                    username
+                }, JWT_SECRET, {
+                    expiresIn: '6h'
+                });
+
+                return {
+                    ...user.toJSON(),
+                    token
+                };
             } catch (err) {
                 console.log(err);
                 if (err.name === 'SequelizeUniqueConstraintError') {

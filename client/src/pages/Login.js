@@ -35,7 +35,7 @@ const Login = ({history}) => {
     const [login, { loading }] = useMutation(LOGIN_USER, {
         update: (_, {data}) => {
             dispatch({type: 'LOGIN', payload: data.login});
-            history.push('/');
+            window.location.href = '/';
         },
         onError: (error) => {
             setErrors(error.graphQLErrors?.[0].extensions?.errors ?? {});

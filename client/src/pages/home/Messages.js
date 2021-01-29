@@ -15,11 +15,7 @@ const Messages = () => {
 
     const [getMessages, {loading: messagesLoading, data: messagesData}] = useLazyQuery(GET_MESSAGES);
     const [sendMessage] = useMutation(SEND_MESSAGE, {
-       onError: error => console.log(error),
-       onCompleted: data => dispatch({type: 'ADD_MESSAGE', payload: {
-            username: selectedUser.username,
-            message: data.sendMessage
-           }})
+       onError: error => console.log(error)
     });
 
     const [content, setContent] = useState('');

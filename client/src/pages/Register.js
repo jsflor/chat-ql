@@ -41,8 +41,8 @@ const Register = ({history}) => {
 
     const [register, { loading }] = useMutation(REGISTER_USER, {
         update: (_, {data}) => {
-            dispatch({type: 'LOGIN', payload: data.login});
-            history.push('/');
+            dispatch({type: 'LOGIN', payload: data.register});
+            window.location.href = '/';
         },
         onError: (error) =>
             setErrors(error.graphQLErrors?.[0].extensions?.errors ?? {})
