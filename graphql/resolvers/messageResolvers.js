@@ -1,7 +1,7 @@
-const {UserInputError, AuthenticationError, withFilter} = require('apollo-server');
+const {UserInputError, AuthenticationError, withFilter, ForbiddenError} = require('apollo-server');
 const {Op} = require('sequelize');
 
-const {Message, User} = require('../../models');
+const {Message, User, Reaction} = require('../../models');
 
 module.exports = {
     Query: {
@@ -60,6 +60,52 @@ module.exports = {
                 console.log(error);
                 throw error;
             }
+        },
+        reactToMessage: async (_, { uuid, content }, { user, pubSub }) => {
+            const reactions = ['❤️', '😆', '😯', '😢', '😡', '👍', '👎']
+
+            try {
+                // Validate reaction content
+                if (!reactions.includes(content)) {
+                    throw new UserInputError('Invalid reaction')
+                }
+
+                // Get user
+                const username = user ? user.username : ''
+                user = await User.findOne({ where: { username } })
+                if (!user) throw new AuthenticationError('Unauthenticated')
+
+                // Get message
+                const message = await Message.findOne({ where: { uuid } })
+                if (!message) throw new UserInputError('message not found')
+
+                if (message.from !== user.username && message.to !== user.username) {
+                    throw new ForbiddenError('Unauthorized')
+                }
+
+                let reaction = await Reaction.findOne({
+                    where: { messageId: message.id, userId: user.id },
+                })
+
+                if (reaction) {
+                    // Reaction exists, update it
+                    reaction.content = content
+                    await reaction.save()
+                } else {
+                    // Reaction doesnt exists, create it
+                    reaction = await Reaction.create({
+                        messageId: message.id,
+                        userId: user.id,
+                        content,
+                    })
+                }
+
+                pubSub.publish('NEW_REACTION', {newReaction: reaction});
+
+                return reaction
+            } catch (err) {
+                throw err
+            }
         }
     },
     Subscription: {
@@ -69,6 +115,15 @@ module.exports = {
                 return pubSub.asyncIterator(['NEW_MESSAGE']);
             }, ({newMessage}, _, {user}) => {
                 return newMessage.from === user.username || newMessage.to === user.username;
+            })
+        },
+        newReaction: {
+            subscribe: withFilter((_, __, {pubSub, user}) => {
+                if (!user) throw new AuthenticationError('UNAUTHENTICATED');
+                return pubSub.asyncIterator(['NEW_REACTION']);
+            }, async ({newReaction}, _, {user}) => {
+                const message = await newReaction.getMessage();
+                return message.from === user.username || message.to === user.username;
             })
         }
     }
