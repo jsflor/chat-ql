@@ -20,7 +20,8 @@ module.exports = {
                         from: {[Op.in]: usernames},
                         to: {[Op.in]: usernames},
                     },
-                    order: [['createdAt', 'DESC']]
+                    order: [['createdAt', 'DESC']],
+                    include: [{ model: Reaction, as: 'reactions' }],
                 });
 
             } catch (error) {
@@ -112,7 +113,7 @@ module.exports = {
         newMessage: {
             subscribe: withFilter((_, __, {pubSub, user}) => {
                 if (!user) throw new AuthenticationError('UNAUTHENTICATED');
-                return pubSub.asyncIterator(['NEW_MESSAGE']);
+                return pubSub.asyncIterator('NEW_MESSAGE');
             }, ({newMessage}, _, {user}) => {
                 return newMessage.from === user.username || newMessage.to === user.username;
             })
@@ -120,7 +121,7 @@ module.exports = {
         newReaction: {
             subscribe: withFilter((_, __, {pubSub, user}) => {
                 if (!user) throw new AuthenticationError('UNAUTHENTICATED');
-                return pubSub.asyncIterator(['NEW_REACTION']);
+                return pubSub.asyncIterator('NEW_REACTION');
             }, async ({newReaction}, _, {user}) => {
                 const message = await newReaction.getMessage();
                 return message.from === user.username || message.to === user.username;
